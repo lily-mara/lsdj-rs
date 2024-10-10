@@ -342,16 +342,19 @@ pub struct Entries<'a> {
 }
 
 impl<'a> Iterator for Entries<'a> {
-    type Item = Option<Entry<'a>>;
+    type Item = Entry<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if (self.index as usize) < Filesystem::FILES_CAPACITY {
+        while (self.index as usize) < Filesystem::FILES_CAPACITY {
             let file = self.fs.file(Index::new(self.index));
             self.index += 1;
-            Some(file)
-        } else {
-            None
+
+            if let Some(file) = file {
+                return Some(file);
+            }
         }
+
+        None
     }
 }
 

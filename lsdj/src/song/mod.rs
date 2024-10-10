@@ -12,7 +12,7 @@ use thiserror::Error;
 /// of songs, but for now this suffices to import and export songs from [`SRam`](crate::sram).
 pub struct SongMemory {
     /// The bytes that make up the song
-    bytes: [u8; Self::LEN],
+    bytes: Vec<u8>,
 }
 
 impl SongMemory {
@@ -24,20 +24,22 @@ impl SongMemory {
     /// This sets all the necessary verification bytes that LSDJ uses to check for memory corruption.
     pub fn new() -> Self {
         Self {
-            bytes: *include_bytes!("92L_empty.raw"),
+            bytes: include_bytes!("92L_empty.raw").to_vec(),
         }
     }
 
     /// Deserialize [`SongMemory`] from bytes
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, FromBytesError> {
-        let bytes: [u8; Self::LEN] = bytes
-            .try_into()
-            .map_err(|_| FromBytesError::IncorrectSize)?;
+        if bytes.len() != Self::LEN {
+            return Err(FromBytesError::IncorrectSize);
+        }
 
         let check = |offset| bytes[offset] == 0x72 && bytes[offset + 1] == 0x62;
 
         if check(0x1E78) || check(0x3E80) || check(0x7FF0) {
-            Ok(Self { bytes })
+            Ok(Self {
+                bytes: bytes.to_vec(),
+            })
         } else {
             Err(FromBytesError::InitializationCheckIncorrect)
         }
@@ -71,12 +73,12 @@ impl SongMemory {
 
     /// Access the bytes that make up the song
     pub fn as_slice(&self) -> &[u8] {
-        &self.bytes
+        self.bytes.as_slice()
     }
 
     /// Access the bytes that make up the song
     pub fn as_mut_slice(&mut self) -> &mut [u8] {
-        &mut self.bytes
+        self.bytes.as_mut_slice()
     }
 }
 

@@ -39,7 +39,7 @@ const UNUSED_BLOCK: u8 = 0xFF;
 /// The compression itself is done in blocks of 512 bytes each, according to the specified
 /// [algorithm](https://littlesounddj.fandom.com/wiki/File_Management_Structure).
 pub struct Filesystem {
-    bytes: [u8; Self::LEN],
+    bytes: Vec<u8>,
 }
 
 impl Filesystem {
@@ -61,7 +61,7 @@ impl Filesystem {
     /// memory corruption. This function does so too, resulting in an empty, but valid
     /// filesystem
     pub fn new() -> Self {
-        let mut bytes = [0; Self::LEN];
+        let mut bytes = vec![0; Self::LEN];
 
         bytes[CHECK_RANGE][0] = CHECK_VALUE[0];
         bytes[CHECK_RANGE][1] = CHECK_VALUE[1];
@@ -76,8 +76,8 @@ impl Filesystem {
     where
         R: Read,
     {
-        let mut bytes = [0; Self::LEN];
-        reader.read_exact(bytes.as_mut_slice())?;
+        let mut bytes = vec![0; Self::LEN];
+        reader.read_exact(&mut bytes)?;
 
         if bytes[CHECK_RANGE] != CHECK_VALUE {
             return Err(FromReaderError::InitializationCheckIncorrect);

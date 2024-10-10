@@ -158,7 +158,7 @@ mod tests {
     use super::*;
     use std::io::Cursor;
 
-    fn assert_write<const N: usize>(compression: Compression, expected: [u8; N]) {
+    fn assert_write<const N: usize>(compression: Compression, expected: &[u8]) {
         let mut dest = [0; N];
         compression.write(Cursor::new(dest.as_mut_slice())).unwrap();
         assert_eq!(&dest, &expected);

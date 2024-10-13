@@ -52,45 +52,44 @@ pub fn export(mut args: ExportArgs) -> Result<()> {
     };
     create_dir_all(&folder).context("Could not create output directory")?;
 
-    for (index, file) in sram.filesystem.files().enumerate() {
+    for file in sram.filesystem.files() {
+        let index = u8::from(file.index()) as usize;
         if !args.index.contains(&index) {
             continue;
         }
 
-        if let Some(file) = file {
-            let lsdsng = file
-                .lsdsng()
-                .context("Could not create an LsdSng from an SRAM file slot")?;
+        let lsdsng = file
+            .lsdsng()
+            .context("Could not create an LsdSng from an SRAM file slot")?;
 
-            let mut filename = String::new();
-            if args.output_pos {
-                filename.push_str(&format!("{:02}_", index));
+        let mut filename = String::new();
+        if args.output_pos {
+            filename.push_str(&format!("{:02}_", index));
+        }
+
+        let name = lsdsng.name()?;
+        filename.push_str(name.as_str());
+        if args.output_version {
+            if args.decimal {
+                filename.push_str(&format!("_v{:03}", lsdsng.version()));
+            } else {
+                filename.push_str(&format!("_v{:02X}", lsdsng.version()));
             }
+        }
 
-            let name = lsdsng.name()?;
-            filename.push_str(name.as_str());
-            if args.output_version {
-                if args.decimal {
-                    filename.push_str(&format!("_v{:03}", lsdsng.version()));
-                } else {
-                    filename.push_str(&format!("_v{:02X}", lsdsng.version()));
-                }
-            }
+        let path = folder.join(filename).with_extension("lsdsng");
 
-            let path = folder.join(filename).with_extension("lsdsng");
+        if check_for_overwrite(&path)? {
+            lsdsng
+                .to_path(&path)
+                .context("Could not write lsdsng to file")?;
 
-            if check_for_overwrite(&path)? {
-                lsdsng
-                    .to_path(&path)
-                    .context("Could not write lsdsng to file")?;
-
-                println!(
-                    "{:02}. {:8} => {}",
-                    index,
-                    name.as_str(),
-                    path.file_name().unwrap().to_string_lossy()
-                );
-            }
+            println!(
+                "{:02}. {:8} => {}",
+                index,
+                name.as_str(),
+                path.file_name().unwrap().to_string_lossy()
+            );
         }
     }
 

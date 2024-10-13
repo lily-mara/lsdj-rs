@@ -158,8 +158,8 @@ mod tests {
     use super::*;
     use std::io::Cursor;
 
-    fn assert_write<const N: usize>(compression: Compression, expected: &[u8]) {
-        let mut dest = [0; N];
+    fn assert_write(compression: Compression, expected: &[u8]) {
+        let mut dest = vec![0; expected.len()];
         compression.write(Cursor::new(dest.as_mut_slice())).unwrap();
         assert_eq!(&dest, &expected);
     }
@@ -179,14 +179,14 @@ mod tests {
     fn cmd_literal() {
         let compression = compress_step(Cursor::new([0xE0])).unwrap();
         assert_eq!(compression, Compression::CmdLiteral);
-        assert_write(compression, [0xE0, 0xE0]);
+        assert_write(compression, &[0xE0, 0xE0]);
     }
 
     #[test]
     fn rle_literal() {
         let compression = compress_step(Cursor::new([0xC0])).unwrap();
         assert_eq!(compression, Compression::RleLiteral);
-        assert_write(compression, [0xC0, 0xC0]);
+        assert_write(compression, &[0xC0, 0xC0]);
     }
 
     #[test]
@@ -196,14 +196,14 @@ mod tests {
             compression,
             Compression::RunLengthEncoding { value: 4, count: 7 }
         );
-        assert_write(compression, [0xC0, 0x04, 0x07]);
+        assert_write(compression, &[0xC0, 0x04, 0x07]);
     }
 
     #[test]
     fn value() {
         let compression = compress_step(Cursor::new([4, 9])).unwrap();
         assert_eq!(compression, Compression::Literal { value: 4 });
-        assert_write(compression, [0x04]);
+        assert_write(compression, &[0x04]);
     }
 
     #[test]
@@ -215,7 +215,7 @@ mod tests {
         ]))
         .unwrap();
         assert_eq!(compression, Compression::DefaultInstrument { count: 2 });
-        assert_write(compression, [0xE0, 0xF1, 0x02]);
+        assert_write(compression, &[0xE0, 0xF1, 0x02]);
     }
 
     #[test]
@@ -228,7 +228,7 @@ mod tests {
         ]))
         .unwrap();
         assert_eq!(compression, Compression::DefaultWave { count: 2 });
-        assert_write(compression, [0xE0, 0xF0, 0x02]);
+        assert_write(compression, &[0xE0, 0xF0, 0x02]);
     }
 
     #[test]

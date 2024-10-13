@@ -49,10 +49,8 @@ fn print(path: &Path) -> Result<()> {
 
             print_mem(&sram);
 
-            for (index, file) in sram.filesystem.files().enumerate() {
-                if let Some(file) = file {
-                    print_file(index, &file)?;
-                }
+            for file in sram.filesystem.files() {
+                print_file(u8::from(file.index()) as usize, &file)?;
             }
         }
         Some("lsdsng") => {

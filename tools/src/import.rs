@@ -54,27 +54,27 @@ pub fn import(args: ImportArgs) -> Result<()> {
             let sav = SRam::from_path(path)
                 .context(format!("Could not open {}", path.to_string_lossy()))?;
 
-            for (source_index, file) in sav.filesystem.files().enumerate() {
-                if let Some(file) = file {
-                    let song = file.decompress().context(format!(
-                        "Could not decompress file {} from {}",
-                        source_index,
-                        path.to_string_lossy()
-                    ))?;
+            for file in sav.filesystem.files() {
+                let source_index = file.index();
 
-                    let name = file.name()?;
+                let song = file.decompress().context(format!(
+                    "Could not decompress file {} from {}",
+                    source_index,
+                    path.to_string_lossy()
+                ))?;
 
-                    insert(&mut sram, index, &name, file.version(), &song)?;
+                let name = file.name()?;
 
-                    println!(
-                        "{:02} => {} - {}",
-                        index,
-                        path.to_string_lossy(),
-                        name.as_str(),
-                    );
+                insert(&mut sram, index, &name, file.version(), &song)?;
 
-                    index += 1;
-                }
+                println!(
+                    "{:02} => {} - {}",
+                    index,
+                    path.to_string_lossy(),
+                    name.as_str(),
+                );
+
+                index += 1;
             }
         }
     }

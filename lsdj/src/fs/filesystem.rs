@@ -364,6 +364,12 @@ pub struct Entry<'a> {
     index: Index,
 }
 
+impl<'a> Entry<'a> {
+    pub fn index(&self) -> Index {
+        self.index
+    }
+}
+
 impl<'a> File for Entry<'a> {
     fn name(&self) -> Result<Name<8>, FromBytesError> {
         Name::from_bytes(self.fs.file_name(self.index))

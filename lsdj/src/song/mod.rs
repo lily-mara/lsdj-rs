@@ -1,8 +1,10 @@
 //! Unparsed LSDJ song memory
 
-pub(crate) mod instrument;
+pub mod instrument;
+mod offsets;
 pub(crate) mod wave;
 
+use instrument::Instruments;
 use std::io::{self, Read, Write};
 use thiserror::Error;
 
@@ -68,7 +70,7 @@ impl SongMemory {
 
     /// The version of the format the song is encoded in
     pub fn format_version(&self) -> u8 {
-        self.bytes[0x7FFF]
+        self.bytes[self::offsets::FORMAT_VERSION_OFFSET]
     }
 
     /// Access the bytes that make up the song
@@ -79,6 +81,10 @@ impl SongMemory {
     /// Access the bytes that make up the song
     pub fn as_mut_slice(&mut self) -> &mut [u8] {
         self.bytes.as_mut_slice()
+    }
+
+    pub fn instruments<'a>(&'a self) -> Instruments<'a> {
+        Instruments::new(self)
     }
 }
 
